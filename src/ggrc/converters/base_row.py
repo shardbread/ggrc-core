@@ -312,6 +312,8 @@ class ImportRowConverter(RowConverter):
     if self.block_converter.converter.dry_run or self.ignore:
       return
     try:
+      # We should send pre commit signals once again after setting secondary objects
+      self.send_pre_commit_signals()
       modified_objects = get_modified_objects(db.session)
       import_event = log_event(db.session, None)
       cache_utils.update_memcache_before_commit(
