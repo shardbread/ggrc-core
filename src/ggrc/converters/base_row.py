@@ -309,7 +309,7 @@ class ImportRowConverter(RowConverter):
 
     This method also calls pre-and post-commit signals and handles failures.
     """
-    if self.block_converter.converter.dry_run or self.ignore:
+    if self.block_converter.converter.dry_run or sef.ignore:
       return
     try:
       # We should send pre commit signals once again after setting secondary objects
