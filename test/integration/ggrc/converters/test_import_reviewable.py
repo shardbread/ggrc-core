@@ -72,6 +72,46 @@ class TestImportReviewable(TestCase):
     ).one()
     self.assertTrue(notification)
 
+  def test_change_ca_attribute(self):
+    """Reviewable CA changed for Control via import
+    Review -> UNREVIEWED
+    Email Notification added
+    """
+    control = factories.ControlFactory(title="Test control")
+    cad = factories.CustomAttributeDefinitionFactory(
+      title="test_name",
+      definition_type="control",
+      attribute_type="Text",
+    )
+    factories.CustomAttributeValueFactory(
+      custom_attribute=cad,
+      attributable=control,
+      attribute_value="test",
+    )
+
+    resp, review = generate_review_object(
+        control, state=all_models.Review.STATES.REVIEWED)
+    control_id = control.id
+    self.assertEqual(201, resp.status_code)
+    import_data = OrderedDict(
+        [
+            ("object_type", "Control"),
+            ("Code*", control.slug),
+            ("test_name*", "new Value"),
+
+        ]
+    )
+    response = self.import_data(import_data)
+    self._check_csv_response(response, {})
+    control = all_models.Control.query.get(control_id)
+    self.assertEqual(
+        all_models.Review.STATES.UNREVIEWED, control.review_status
+    )
+    notification = all_models.Notification.query.filter_by(
+        object_id=review.id, object_type="Review"
+    ).one()
+    self.assertTrue(notification)
+
   def test_snapshottable_import(self):
     """Revert state for snapshottable object via import.
     Review -> UNREVIEWED
